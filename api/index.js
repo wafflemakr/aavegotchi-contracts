@@ -1,44 +1,37 @@
 const express = require('express');
-const { ethers } = require("ethers");
+const morgan = require("morgan");
 require('dotenv').config()
-
-const {DIAMOND_ADDRESS, GHST_TOKEN_ADDRESS} = require("./constants")
-const {aavegotchiDiamond, ghstDiamond} = require("./abis")
-const provider = new ethers.providers.JsonRpcProvider(process.env.KOVAN_URL);
-
-// Contract Instances
-const aaveGotchi = new ethers.Contract(DIAMOND_ADDRESS, aavegotchiDiamond, provider);
-const ghst = new ethers.Contract(GHST_TOKEN_ADDRESS, ghstDiamond, provider);
 
 const app = express();
 
-const STATUS = ["Closed Portal", "Open Portal", "Aavegotchi"]
+// MIDDLEWARES
+app.use(express.json()); // Body parser
+app.use(morgan("tiny"));
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
 
-app.get('/:account', async(req,res) => {
-  try {
-    const {account} = req.params;
-    const balance = await ghst.balanceOf(account);
-    let gotchis = await aaveGotchi.allAavegotchisOfOwner(account);
+  next();
+});
 
-    gotchis = gotchis.map(g => {
-      return {
-        tokenId:g.tokenId.toNumber(),
-        name: g.name,
-        status:STATUS[g.status],
-        collateral:g.collateral,
-        stakedAmount:g.stakedAmount.toString()
-      }
-    })
+// ROUTES
+app.use("/api/account", require("./routes/account"));
 
-    res.json({
-      account,
-      ghstBalance:ethers.utils.formatUnits(balance, 18),
-      totalGotchis:gotchis.length,
-      gotchis
-    })
-  } catch (error) {
-    console.log(error.message)
+// ERRORS
+app.use((req, res, next) => {
+  throw new Error("Could not find this route.");
+});
+
+app.use((error, req, res, next) => {
+  if (res.headerSent) {
+    return next(error);
   }
+  res.status(500);
+  res.json({ message: error.message || "An unknown error occurred!" });
 });
 
 const PORT = process.env.PORT || '3000';
