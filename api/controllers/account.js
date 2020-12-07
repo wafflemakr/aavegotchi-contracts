@@ -2,6 +2,9 @@ const { ethers } = require("ethers");
 const { aaveGotchi, ghst } = require("../utils")
 const { STATUS } = require("../utils/constants")
 
+// @route   GET api/account/:address
+// @desc    Get Account Info
+// @access  Public
 exports.getAccountInfo = async(req, res, next) => {
 	try {
 		const {address} = req.params;

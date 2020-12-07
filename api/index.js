@@ -20,6 +20,7 @@ app.use((req, res, next) => {
 
 // ROUTES
 app.use("/api/account", require("./routes/account"));
+app.use("/api/stats", require("./routes/stats"));
 
 // ERRORS
 app.use((req, res, next) => {

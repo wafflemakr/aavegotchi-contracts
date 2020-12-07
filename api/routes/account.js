@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { getAccountInfo } = require("../controllers/account");
 
-// @route   GET api/v1/tokens/project
-// @desc    Get All ENS Tokens
+// @route   GET api/account/:address
+// @desc    Get Account Info
 // @access  Public
 router.get("/:address", getAccountInfo);
 
